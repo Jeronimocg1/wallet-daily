@@ -1,24 +1,27 @@
 {
-  "name": "wallet-mcp",
+  "name": "wallet-daily",
   "version": "1.0.0",
-  "description": "MCP server for the BudgetBakers Wallet REST API — query personal finance data through Claude Desktop",
+  "description": "Daily budget summaries from BudgetBakers Wallet via Claude — with push notifications",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --outDir dist",
     "start": "bun dist/index.js",
     "dev": "bun --watch src/index.ts",
+    "daily": "bun src/daily.ts",
+    "daily:built": "bun dist/daily.js",
     "prepublishOnly": "pnpm run build",
     "lint": "biome check src"
   },
   "bin": {
     "wallet-mcp": "dist/index.js"
   },
-  "keywords": ["mcp", "wallet", "budgetbakers", "personal-finance", "claude"],
+  "keywords": ["mcp", "wallet", "budgetbakers", "personal-finance", "claude", "budget", "notifications"],
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
   },
