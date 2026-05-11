@@ -1,13 +1,10 @@
 # schedule-windows.ps1
-# Creates a Windows Task Scheduler task to run wallet-daily every morning at 8:00 AM.
+# Creates all wallet-daily scheduled tasks.
 # Run once from an elevated PowerShell prompt:
 #   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 #   .\scripts\schedule-windows.ps1
 
-$TaskName   = "WalletDailyBudget"
-$RunTime    = "08:00"
 $ProjectDir = Resolve-Path (Join-Path $PSScriptRoot "..")
-$Script     = Join-Path $ProjectDir "src\daily.ts"
 $EnvFile    = Join-Path $ProjectDir ".env"
 
 # Find bun
@@ -23,7 +20,7 @@ if (-not (Test-Path $EnvFile)) {
     exit 1
 }
 
-# Load .env and set as machine environment variables so the task can read them
+# Load .env and persist as user environment variables
 Get-Content $EnvFile | Where-Object { $_ -match "^\s*[^#=].*=" } | ForEach-Object {
     $parts = $_ -split "=", 2
     if ($parts.Count -eq 2) {
@@ -33,13 +30,6 @@ Get-Content $EnvFile | Where-Object { $_ -match "^\s*[^#=].*=" } | ForEach-Objec
     }
 }
 
-$action = New-ScheduledTaskAction `
-    -Execute $BunPath `
-    -Argument "run `"$Script`"" `
-    -WorkingDirectory $ProjectDir
-
-$trigger = New-ScheduledTaskTrigger -Daily -At $RunTime
-
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 5) `
     -StartWhenAvailable `
@@ -47,15 +37,48 @@ $settings = New-ScheduledTaskSettingsSet `
 
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive
 
-Register-ScheduledTask `
-    -TaskName $TaskName `
-    -Action $action `
-    -Trigger $trigger `
-    -Settings $settings `
-    -Principal $principal `
-    -Force | Out-Null
+function Register-WalletTask {
+    param($Name, $Script, $Trigger)
 
-Write-Host "Task '$TaskName' created - runs daily at $RunTime" -ForegroundColor Green
+    $action = New-ScheduledTaskAction `
+        -Execute $BunPath `
+        -Argument "run `"$(Join-Path $ProjectDir $Script)`"" `
+        -WorkingDirectory $ProjectDir
+
+    Register-ScheduledTask `
+        -TaskName $Name `
+        -Action $action `
+        -Trigger $Trigger `
+        -Settings $settings `
+        -Principal $principal `
+        -Force | Out-Null
+
+    Write-Host "  OK  $Name" -ForegroundColor Green
+}
+
+Write-Host "Registering wallet-daily tasks..." -ForegroundColor Cyan
+
+# Daily report — every day at 08:00
+Register-WalletTask "WalletDaily" "src\daily.ts" `
+    (New-ScheduledTaskTrigger -Daily -At "08:00")
+
+# Weekly report — every Monday at 08:05
+Register-WalletTask "WalletWeekly" "src\weekly.ts" `
+    (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At "08:05")
+
+# Midday alert — every day at 13:00
+Register-WalletTask "WalletAlert" "src\alert.ts" `
+    (New-ScheduledTaskTrigger -Daily -At "13:00")
+
+# Monthly close — 1st of every month at 08:10
+Register-WalletTask "WalletMonthly" "src\monthly.ts" `
+    (New-ScheduledTaskTrigger -Monthly -DaysOfMonth 1 -At "08:10")
+
 Write-Host ""
-Write-Host "To test now:  Start-ScheduledTask -TaskName $TaskName" -ForegroundColor Cyan
-Write-Host "To remove:    Unregister-ScheduledTask -TaskName $TaskName" -ForegroundColor Cyan
+Write-Host "All tasks registered." -ForegroundColor Green
+Write-Host ""
+Write-Host "Test commands:" -ForegroundColor Cyan
+Write-Host "  Start-ScheduledTask -TaskName WalletDaily"
+Write-Host "  Start-ScheduledTask -TaskName WalletWeekly"
+Write-Host "  Start-ScheduledTask -TaskName WalletAlert"
+Write-Host "  Start-ScheduledTask -TaskName WalletMonthly"

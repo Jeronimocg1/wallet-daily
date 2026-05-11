@@ -9,6 +9,9 @@
     "start": "bun dist/index.js",
     "dev": "bun --watch src/index.ts",
     "daily": "bun src/daily.ts",
+    "weekly": "bun src/weekly.ts",
+    "monthly": "bun src/monthly.ts",
+    "alert": "bun src/alert.ts",
     "daily:built": "bun dist/daily.js",
     "prepublishOnly": "pnpm run build",
     "lint": "biome check src"
