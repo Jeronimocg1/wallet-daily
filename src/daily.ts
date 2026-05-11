@@ -219,7 +219,7 @@ async function main() {
   );
 
   await sendPushNotification({
-    title: `💰 Budget · ${dates.displayDate}`,
+    title: `Budget - ${dates.displayDate}`,
     message: notification,
     tags: ["moneybag"],
     priority: isOverPace ? "high" : "default",
