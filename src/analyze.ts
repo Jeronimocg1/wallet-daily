@@ -51,11 +51,12 @@ Lines 4+: one bullet per transaction: "• [description]: -$[amount] ([category]
           for income use: "• [description]: +$[amount]"
           if no transactions: "• No spending yesterday"
 Line N: blank
-Line N+1: "MAY BUDGET STATUS (Day [X] of [Y] — [Z]% through month)"
-Lines N+2+: one line per category with spend > 0 or worth flagging:
-            "[Category]  $[limit]  [%]%  [status emoji + label]"
-            status: ✅ Way under / ✅ On track / ⚠️ Watch it / 🚨 Over pace
-Line last: blank then overall: "Total: $[monthToDate] / $[totalBudget] used"
+Line N+1: "MAY - Day [X] of [Y] ([Z]% of month gone)"
+Lines N+2+: one line per category:
+            "[emoji] [Category]: $[spent] / $[limit] ([%]%)"
+            emoji: ✅ on track, ⚠️ watch it, 🚨 over pace
+            Include ALL categories, even $0 ones
+Line last: blank then "Total: $[monthToDate] / $[totalBudget]"
 
 Keep category names short. Use real transaction descriptions (payee/note), not generic labels.
 Flag ⚠️ if % used > % of month elapsed + 10 points.
